@@ -28,6 +28,12 @@ module.exports = {
     }
   },
   chainWebpack: config => {
+    if (process.env.NODE_ENV === 'production') {
+      // 测试生产环境, 不压缩js代码
+      if (process.env.VUE_APP_TITLE === 'alpha') {
+        config.optimization.minimize(false)
+      }
+    }
     // 移除 prefetch 插件
     config.plugins.delete('prefetch')
 
@@ -39,40 +45,33 @@ module.exports = {
     //   return options
     // })
   },
-  chainWebpack: config => {
-    if (process.env.NODE_ENV === 'production') {
-      // 测试生产环境, 不压缩js代码
-      if (process.env.VUE_APP_TITLE === 'alpha') {
-        config.optimization.minimize(false)
-      }
-    }
-    // config.resolve.alias.set('@', resolve('src'))
-  }
   //drop_console是把console.log()注释掉了，而pure_funcs是把console.log()移除掉了。
-  // configureWebpack: config => {
-  //   if (env !== 'development' || env !== 'test') {
-  //     config.plugins.push(
-  //       new CompressionWebpackPlugin({
-  //         algorithm: 'gzip',
-  //         test: new RegExp(`\\.(${productionGzipExtensions.join('|')})$`),
-  //         threshold: 10240,
-  //         minRatio: 0.8
-  //       })
-  //     )
-  //     config.plugins.push(
-  //       new UglifyJsPlugin({
-  //         uglifyOptions: {
-  //           compress: {
-  //             warnings: false,
-  //             drop_debugger: true, // console
-  //             drop_console: true,
-  //             pure_funcs: ['console.log'] // 移除console
-  //           }
-  //         },
-  //         sourceMap: false,
-  //         parallel: true
-  //       })
-  //     )
-  //   }
-  // }
+  configureWebpack: config => {
+    if (env === 'production') {
+      config.plugins.push(
+        new CompressionWebpackPlugin({
+          algorithm: 'gzip',
+          test: new RegExp(`\\.(${productionGzipExtensions.join('|')})$`),
+          threshold: 10240,
+          minRatio: 0.8
+        })
+      )
+      config.plugins.push(
+        new UglifyJsPlugin({
+          uglifyOptions: {
+            compress: {
+              warnings: false,
+              // drop_debugger: true, // console
+              drop_console: true,
+              pure_funcs: ['console.log'] // 移除console
+            }
+          },
+          sourceMap: false,
+          parallel: true,
+          productionSourceMap: false
+        })
+      )
+    } else {
+    }
+  }
 }
