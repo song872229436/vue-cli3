@@ -1,4 +1,5 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+
 const CompressionWebpackPlugin = require('compression-webpack-plugin')
 
 const productionGzipExtensions = ['js', 'css'] //压缩
@@ -9,6 +10,7 @@ module.exports = {
   outputDir: `dist-${process.env.VUE_APP_TITLE}`, //build输出目录
   assetsDir: 'assets', //静态资源目录（js, css, img）
   lintOnSave: false, //是否开启eslint
+  productionSourceMap: false, //不在production环境使用SourceMap
   devServer: {
     open: true, //是否自动弹出浏览器页面
     host: 'localhost',
@@ -47,31 +49,29 @@ module.exports = {
   },
   //drop_console是把console.log()注释掉了，而pure_funcs是把console.log()移除掉了。
   configureWebpack: config => {
-    if (env === 'production') {
-      config.plugins.push(
-        new CompressionWebpackPlugin({
-          algorithm: 'gzip',
-          test: new RegExp(`\\.(${productionGzipExtensions.join('|')})$`),
-          threshold: 10240,
-          minRatio: 0.8
-        })
-      )
-      config.plugins.push(
-        new UglifyJsPlugin({
-          uglifyOptions: {
-            compress: {
-              warnings: false,
-              // drop_debugger: true, // console
-              drop_console: true,
-              pure_funcs: ['console.log'] // 移除console
-            }
+    //入口文件
+    // config.entry.app = ['babel-polyfill', './src/main.js']
+    //删除console插件
+    let plugins = [
+      new UglifyJsPlugin({
+        uglifyOptions: {
+          warnings: false,
+          compress: {
+            drop_console: true,
+            drop_debugger: true
           },
-          sourceMap: false,
-          parallel: true,
-          productionSourceMap: false
-        })
-      )
-    } else {
+          output: {
+            // 去掉注释内容
+            comments: false
+          }
+        },
+        sourceMap: false,
+        parallel: true
+      })
+    ]
+    //只有打包生产环境才需要将console删除
+    if (process.env.VUE_APP_TITLE == 'production') {
+      config.plugins = [...config.plugins, ...plugins]
     }
   }
 }

@@ -21,6 +21,9 @@
       return {
         process: process.env.NODE_ENV
       }
+    },
+    created() {
+      console.log('看到我你就输了')
     }
   }
 </script>
